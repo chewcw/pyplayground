@@ -3,7 +3,7 @@
 #   just COLLECTION=other collect INPUT_CHROMA=/path ingest-chroma
 
 # ---- Defaults (edit if you want other defaults) ----
-CHROMA_DIR := '/home/ccw/Documents/code/rnd/flutter-app/claim-agent/playground/vector_db'
+CHROMA_DIR := '/home/ccw/Documents/code/rnd/pyplayground/vector_db'
 QDRANT_URL := 'http://localhost:6333'
 COLLECTION := 'handbook'
 VECTOR_BACKEND := 'qdrant'
@@ -13,8 +13,8 @@ DEEPAGENT_MODEL := 'gemini-3.1-flash-lite-preview'
 RAG_TOP_K := '4'
 RETRIEVE_QUERY := ''
 QUERY_STRING := ''
-INPUT_CHROMA := '/home/ccw/Documents/code/rnd/flutter-app/claim-agent/playground/vector_db/hr-handbook'
-INPUT_QDRANT := '/home/ccw/Documents/code/rnd/flutter-app/claim-agent/playground/vector_db/hr-handbook'
+INPUT_CHROMA := '/home/ccw/Documents/code/rnd/pyplayground/vector_db/assets/hr-handbook'
+INPUT_QDRANT := '/home/ccw/Documents/code/rnd/pyplayground/vector_db/assets/hr-handbook'
 INDEXER_CHROMA := 'python3 ./indexer_chroma.py'
 INDEXER_QDRANT := 'python3 ./indexer_qdrant.py'
 CHUNK_SIZE := '1000'
