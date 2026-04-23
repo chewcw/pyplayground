@@ -1,0 +1,75 @@
+# Hybrid justfile for convenient local commands
+# Defaults can be overridden on the command line: e.g.
+#   just COLLECTION=other collect INPUT_CHROMA=/path ingest-chroma
+
+# ---- Defaults (edit if you want other defaults) ----
+CHROMA_DIR := '/home/ccw/Documents/code/rnd/flutter-app/claim-agent/playground/vector_db'
+QDRANT_URL := 'http://localhost:6333'
+COLLECTION := 'handbook'
+VECTOR_BACKEND := 'qdrant'
+EMBED_PROVIDER := 'ollama'
+EMBED_MODEL := 'embeddinggemma:latest'
+DEEPAGENT_MODEL := 'gemini-3.1-flash-lite-preview'
+RAG_TOP_K := '4'
+RETRIEVE_QUERY := ''
+QUERY_STRING := ''
+INPUT_CHROMA := '/home/ccw/Documents/code/rnd/flutter-app/claim-agent/playground/vector_db/hr-handbook'
+INPUT_QDRANT := '/home/ccw/Documents/code/rnd/flutter-app/claim-agent/playground/vector_db/hr-handbook'
+INDEXER_CHROMA := 'python3 ./indexer_chroma.py'
+INDEXER_QDRANT := 'python3 ./indexer_qdrant.py'
+CHUNK_SIZE := '1000'
+CHUNK_OVERLAP := '200'
+CHUNK_STRATEGY := 'overlap'
+
+# ---- Recipes ----
+help:
+	@echo "Available recipes:"
+	@echo "  agent            (uses VECTOR_BACKEND, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, QDRANT_URL, CHROMA_DIR, RAG_TOP_K, DEEPAGENT_MODEL)"
+	@echo "  ingest-chroma       (uses CHROMA_DIR, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, INPUT_CHROMA)"
+	@echo "  retrieve-chroma     (uses CHROMA_DIR, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, RETRIEVE_QUERY)"
+	@echo "  embed-chroma        (uses CHROMA_DIR, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, QUERY_STRING)"
+	@echo "  ingest-qdrant       (uses QDRANT_URL, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, INPUT_QDRANT)"
+	@echo "  retrieve-qdrant     (uses QDRANT_URL, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, RETRIEVE_QUERY)"
+	@echo "  embed-qdrant        (uses QDRANT_URL, COLLECTION, EMBED_PROVIDER, EMBED_MODEL, QUERY_STRING)"
+
+ingest-chroma:
+	{{INDEXER_CHROMA}} ingest --collection_name {{COLLECTION}} --chroma_dir {{CHROMA_DIR}} --embed_provider {{EMBED_PROVIDER}} --embed_model {{EMBED_MODEL}} --input_dir {{INPUT_CHROMA}} --chunk_size {{CHUNK_SIZE}} --chunk_overlap {{CHUNK_OVERLAP}} --chunk_strategy {{CHUNK_STRATEGY}}
+
+retrieve-chroma:
+	@if [ -z "{{RETRIEVE_QUERY}}" ]; then \
+		echo "Please set RETRIEVE_QUERY, e.g.\n  just RETRIEVE_QUERY='west malaysia daily allowance' retrieve-chroma"; \
+		exit 1; \
+	fi
+	{{INDEXER_CHROMA}} retrieve --collection_name {{COLLECTION}} --chroma_dir {{CHROMA_DIR}} --embed_provider {{EMBED_PROVIDER}} --embed_model {{EMBED_MODEL}} --retrieve_query "{{RETRIEVE_QUERY}}"
+
+embed-chroma:
+	@if [ -z "{{QUERY_STRING}}" ]; then \
+		echo "Please set QUERY_STRING, e.g.\n  just QUERY_STRING='west malaysia daily allowance' embed-chroma"; \
+		exit 1; \
+	fi
+	{{INDEXER_CHROMA}} embed --collection_name {{COLLECTION}} --chroma_dir {{CHROMA_DIR}} --embed_provider {{EMBED_PROVIDER}} --embed_model {{EMBED_MODEL}} --query_string "{{QUERY_STRING}}"
+
+ingest-qdrant:
+	{{INDEXER_QDRANT}} ingest --collection_name {{COLLECTION}} --chroma_dir {{QDRANT_URL}} --embed_provider {{EMBED_PROVIDER}} --embed_model {{EMBED_MODEL}} --input_dir {{INPUT_QDRANT}} --chunk_size {{CHUNK_SIZE}} --chunk_overlap {{CHUNK_OVERLAP}} --chunk_strategy {{CHUNK_STRATEGY}}
+
+retrieve-qdrant:
+	@if [ -z "{{RETRIEVE_QUERY}}" ]; then \
+		echo "Please set RETRIEVE_QUERY, e.g.\n  just RETRIEVE_QUERY='west malaysia' retrieve-qdrant"; \
+		exit 1; \
+	fi
+	{{INDEXER_QDRANT}} retrieve --collection_name {{COLLECTION}} --chroma_dir {{QDRANT_URL}} --embed_provider {{EMBED_PROVIDER}} --embed_model {{EMBED_MODEL}} --retrieve_query "{{RETRIEVE_QUERY}}"
+
+embed-qdrant:
+	@if [ -z "{{QUERY_STRING}}" ]; then \
+		echo "Please set QUERY_STRING, e.g.\n  just QUERY_STRING='west malaysia' embed-qdrant"; \
+		exit 1; \
+	fi
+	{{INDEXER_QDRANT}} embed --collection_name {{COLLECTION}} --chroma_dir {{QDRANT_URL}} --embed_provider {{EMBED_PROVIDER}} --embed_model {{EMBED_MODEL}} --query_string "{{QUERY_STRING}}"
+
+agent:
+	VECTOR_BACKEND={{VECTOR_BACKEND}} VECTOR_COLLECTION={{COLLECTION}} QDRANT_URL={{QDRANT_URL}} CHROMA_PATH={{CHROMA_DIR}} EMBED_PROVIDER={{EMBED_PROVIDER}} EMBED_MODEL={{EMBED_MODEL}} RAG_TOP_K={{RAG_TOP_K}} DEEPAGENT_MODEL={{DEEPAGENT_MODEL}} python3 ./agent.py
+
+# Notes:
+# - Override any default on the just command line: e.g.
+#     just COLLECTION=receipts EMBED_MODEL=all-MiniLM-L6-v2 INPUT_QDRANT=http://localhost:6333 ingest-qdrant
+# - Use `just help` to see these recipes.

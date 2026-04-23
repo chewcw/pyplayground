@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Playwright Example</title></head>
+<body>
+  <div id="login-form">
+    <input id="username" placeholder="username"/>
+    <input id="password" placeholder="password" type="password"/>
+    <button id="loginBtn">Login</button>
+  </div>
+  <div id="welcome" style="display:none;"></div>
+  <script>
+    document.getElementById('loginBtn').addEventListener('click', function(){
+      var u = document.getElementById('username').value || 'user';
+      document.getElementById('login-form').style.display='none';
+      document.getElementById('welcome').textContent = 'Welcome, ' + u;
+      document.getElementById('welcome').style.display = 'block';
+      localStorage.setItem('lastUser', u);
+    });
+    window.addEventListener('load', function(){
+      var last = localStorage.getItem('lastUser');
+      if(last){
+        document.getElementById('login-form').style.display='none';
+        document.getElementById('welcome').textContent = 'Welcome back, ' + last;
+        document.getElementById('welcome').style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
