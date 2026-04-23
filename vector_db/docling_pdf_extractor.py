@@ -468,7 +468,7 @@ def extract_pdf(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Extract PDF sections with Docling")
-    parser.add_argument("pdf", type=Path, help="Input PDF file")
+    parser.add_argument("--pdf", type=Path, help="Input PDF file")
     parser.add_argument("--output-dir", type=Path, required=True, help="Directory for extracted markdown files")
     parser.add_argument(
         "--strategy",
