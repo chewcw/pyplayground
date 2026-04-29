@@ -36,6 +36,7 @@ class RetrievedDocument:
     id: str | None
     text: str
     metadata: dict[str, Any]
+    embedding: Any | None = None
     score: float | None = None
 
 
@@ -227,7 +228,7 @@ class QdrantBackend:
             query=embedding,
             limit=top_k,
             with_payload=True,
-            with_vectors=False,
+            with_vectors=True,
         )
         points = getattr(result, "points", result)
         if points is None:
@@ -236,6 +237,7 @@ class QdrantBackend:
         documents: list[RetrievedDocument] = []
         for point in points:
             payload = getattr(point, "payload", None) or {}
+            point_embedding = getattr(point, "vector", None)
             text = (
                 payload.get("document")
                 or payload.get("text")
@@ -254,6 +256,7 @@ class QdrantBackend:
                     id=str(point_id) if point_id is not None else None,
                     text=str(text),
                     metadata=metadata,
+                    embedding=point_embedding,
                     score=float(score) if score is not None else None,
                 )
             )
@@ -296,18 +299,21 @@ class ChromaBackend:
         documents = _result_list(results, "documents")
         metadatas = _result_list(results, "metadatas")
         ids = _result_list(results, "ids")
+        embeddings = _result_list(results, "embeddings")
         distances = _result_list(results, "distances")
 
         retrieved: list[RetrievedDocument] = []
         for index, text in enumerate(documents):
             metadata = metadatas[index] if index < len(metadatas) and isinstance(metadatas[index], dict) else {}
             raw_id = ids[index] if index < len(ids) else None
+            vector = embeddings[index] if index < len(embeddings) else None
             distance = distances[index] if index < len(distances) else None
             retrieved.append(
                 RetrievedDocument(
                     id=str(raw_id) if raw_id is not None else None,
                     text=str(text or ""),
                     metadata=metadata,
+                    embedding=vector,
                     score=float(distance) if distance is not None else None,
                 )
             )

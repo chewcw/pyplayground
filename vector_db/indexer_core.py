@@ -749,15 +749,15 @@ def embed_query(embed_client: EmbeddingClient, query: str) -> List[float]:
 def retrieve_documents(
     collection,
     embedding: List[float],
-    top_k: int = 10,
+    top_k: int = 5,
     filters: Dict = None,
     include: List[str] = None,
 ):
     """Query the collection using a precomputed embedding.
 
-    Returns a list of result dicts with keys: id, source, text, metadata, score
+    Returns a list of result dicts with keys: id, text, metadata, score, embedding
     """
-    include = include or [
+    include = list(include) if include is not None else [
         "documents",
         "metadatas",
         "distances",
@@ -765,6 +765,8 @@ def retrieve_documents(
         "uris",
         "data",
     ]
+    if "embeddings" not in include:
+        include.append("embeddings")
 
     try:
         results = collection.query(
@@ -782,19 +784,20 @@ def retrieve_documents(
         )
 
     hits = []
-    docs = results.get("documents", [[]])[0]
-    metadatas = results.get("metadatas", [[]])[0]
+    docs = _unwrap_list_field(results.get("documents", [])) or []
+    metadatas = _unwrap_list_field(results.get("metadatas", [])) or []
+    embeddings = _unwrap_list_field(results.get("embeddings", [])) or []
 
     if "ids" in results:
-        ids = results.get("ids", [[]])[0]
+        ids = _unwrap_list_field(results.get("ids", [])) or []
     elif "data" in results:
-        ids = results.get("data", [[]])[0]
+        ids = _unwrap_list_field(results.get("data", [])) or []
     elif "uris" in results:
-        ids = results.get("uris", [[]])[0]
+        ids = _unwrap_list_field(results.get("uris", [])) or []
     else:
         ids = [None] * len(docs)
 
-    distances = results.get("distances", [[]])[0]
+    distances = _unwrap_list_field(results.get("distances", [])) or []
 
     for i, doc in enumerate(docs):
         meta = metadatas[i] if i < len(metadatas) else {}
@@ -804,12 +807,14 @@ def retrieve_documents(
         else:
             doc_id = raw_id
         distance = distances[i] if i < len(distances) else None
+        doc_embedding = embeddings[i] if i < len(embeddings) else None
         hits.append(
             {
                 "id": doc_id,
                 "text": doc,
                 "metadata": meta,
                 "score": float(distance) if distance is not None else None,
+                "embedding": doc_embedding,
             }
         )
     return hits
@@ -1312,12 +1317,12 @@ def run_retrieve_command(args, *, collection_target, get_collection_fn) -> None:
         embed_client=embed_client,
         chroma_dir=collection_target,
         collection_name=args.collection_name,
-        top_k=5,
+        top_k=10,
         filters=None,
         rerank=True,
         get_collection_fn=get_collection_fn,
     )
-    print(results)
+    print(json.dumps(results, indent=2))
 
 
 def run_embed_command(args) -> None:
