@@ -1,0 +1,9 @@
+help:
+  @echo "Available commands:"
+  @echo "  run-pageindex - Run the page index script with the specified PDF path."
+
+run-pageindex:
+  uv run python3 \
+    ./run_pageindex.py \
+    --model ollama/gpt-oss:20b-cloud \
+    --pdf_path assets/pc_employee_handbook_2026.pdf

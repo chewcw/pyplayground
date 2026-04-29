@@ -1,0 +1,23 @@
+[project]
+name = "vectorless_db"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "agents>=1.4.0",
+    "deepagents>=0.5.4",
+    "langchain-openai>=1.1.10",
+    "litellm>=1.83.14",
+    "pymupdf>=1.27.2.3",
+    "pypdf2>=3.0.1",
+    "python-dotenv>=1.2.2",
+    "pyyaml>=6.0.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tools*"]
+
+[tool.setuptools.package-dir]
+tools = "tools"
